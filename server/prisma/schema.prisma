@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int     @id @default(autoincrement())
+  email          String  @unique
+  password       String
+  username       String  @unique
+  profilePicture String? @map("profile_picture")
+  firstname      String  @default("")
+  lastname       String  @default("")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  Listings Listing[] @relation("listings")
+  @@map("users")
+}
+
+model Listing {
+  id          Int     @id @default(autoincrement())
+  title      String  @default("")
+  startPrice  Int
+  maxPrice    Int
+  images      String[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  // relations //////////////////////
+ creatorId Int      @map("creator_id")
+ creator   User     @relation("listings", fields: [creatorId], references: [id])
+ categoryId    Int
+ category      Category    @relation("CategorizedWith", fields: [categoryId], references: [id])
+  
+  @@map("listings")
+}
+
+model Category {
+  id          Int     @id @default(autoincrement())
+  name        String
+  slug        String
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  // relations //////////////////////
+
+  listings         Listing[]        @relation("CategorizedWith")
+
+  @@map("categories")
+}
+
